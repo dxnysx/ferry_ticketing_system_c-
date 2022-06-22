@@ -1,0 +1,729 @@
+#include <iostream>
+#include <string>
+#include <iomanip>
+#include <fstream>
+#include <limits> // to stop endless looping when alphabet is entered when int is declared
+#include<conio.h> //change uppercase to lowercase
+#include <cctype>
+using namespace std;
+
+int totalnum, fIDselect, sales, row, column;
+int adults, children, infants, seniors, totalprice = 0;
+const int MAX_LD = 30, MAX_UD = 10;
+const int SIZE = 8;
+const int LOC_SIZE = 2;
+const int FERRYID = 8;
+const int UROWS = 5;
+const int LROWS = 6;
+const int COLUMNS = 5;
+int udeckPassengers, ldeckPassengers, totalSales = 0;
+int udpassengers[LOC_SIZE][FERRYID] = { 0 };
+int ldpassengers[LOC_SIZE][FERRYID] = { 0 };
+int dispSeats[LOC_SIZE][FERRYID] = { 0 };
+int penangSales[8] = { 0 };
+int langkawiSales[8] = { 0 };
+int seatingchartUD[LOC_SIZE][FERRYID][UROWS][COLUMNS] = { 0 }; //total size = 2 * 8 * 2 * 5 = 180
+int seatingchartLD[LOC_SIZE][FERRYID][LROWS][COLUMNS] = { 0 }; //  total size = 2 * 8 * 6 * 5 = 480
+//Declare an array variable of the new data type - timeFerry//
+char book,seatoption;
+
+string urownum[] = { " Row 1 >   "," Row 2 >   "," Row 3 >   "," Row 4 >   "," Row 5 >   " };
+string lrownum[] = { " Row 1 >   "," Row 2 >   "," Row 3 >   "," Row 4 >   "," Row 5 >   "," Row 6 >   " };
+
+struct timeFerry
+{
+	string timeDep;
+	int fID;
+	int noSeatsUD;
+	int noSeatsLD;
+};
+
+struct num
+{
+	int numAdults;
+	int numChildren;
+	int numInfants;
+	int numSeniors;
+}n;
+
+timeFerry tFPenang[SIZE] = { { "7AM", 0 , 10, 30 },
+							 { "9AM", 1 , 10, 30 },
+							 { "11AM", 2 , 10, 30 },
+							 { "1PM", 3 , 10, 30 },
+							 { "3PM", 4 , 10, 30 },
+							 { "5PM", 5 , 10, 30 },
+							 { "7PM", 6 , 10, 30 },
+							 { "9PM", 7 , 10, 30 }, };
+
+timeFerry tFLangkawi[SIZE] = { { "8AM", 0, 10, 30 },
+							 { "10AM", 1, 10, 30 },
+							 { "12PM", 2, 10, 30 },
+							 { "2PM", 3, 10, 30 },
+							 { "4PM", 4, 10, 30 },
+							 { "6PM", 5, 10, 30 },
+							 { "8PM", 6, 10, 30 },
+							 { "10PM", 7, 10, 30 }, };
+
+void udticket(int loc, int fid);
+
+void ldticket(int loc, int fid);
+
+void pschedule() //done
+{
+	string priceDisp = "\n ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ \n"
+		" Price of the Tickets from Penang to Langkawi are as below : \n \n Adult (above 12 years) : \n \t Upper Deck : RM 80 \n \t Lower Deck : RM 75 \n \n Children : \n \t Upper Deck : RM 60 \n \t Lower Deck : RM 55 \n \n Infants (below 2 years) :\n \t Upper Deck : RM 35 \n \t Lower Deck : RM 30 \n \n Senior Citizens (above 65 years) : \n \t Upper Deck : RM 75 \n \t Lower Deck : RM 70 \n"
+		"~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ \n \n";
+
+	cout << " ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ";
+	cout << " \n                    Penang Schedule \n ";
+	cout << "~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ " << endl;
+	cout << "Time    || Ferry ID     || Upper Deck   || Lower Deck" << endl;
+	for (int loop = 0; loop < SIZE; loop++)
+	{
+		cout << tFPenang[loop].timeDep << "\t" << "||"
+			 << tFPenang[loop].fID << "\t" << "\t" << "||"
+			 << tFPenang[loop].noSeatsUD << "\t" << "\t" << "||"
+			 << tFPenang[loop].noSeatsLD << "\t  " << endl;
+	}
+	cout << priceDisp;
+}
+
+void lschedule() //done
+{
+	string priceDisp = "\n ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ \n"
+		" Price of the Tickets from Langkawi to Penang are as below : \n \n Adult (above 12 years) : \n \t Upper Deck : RM 80 \n \t Lower Deck : RM 75 \n \n Children : \n \t Upper Deck : RM 60 \n \t Lower Deck : RM 55 \n \n Infants (below 2 years) :\n \t Upper Deck : RM 35 \n \t Lower Deck : RM 30 \n \n Senior Citizens (above 65 years) : \n \t Upper Deck : RM 75 \n \t Lower Deck : RM 70 \n"
+		"~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ \n \n";
+
+	cout << " ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ";
+	cout << " \n                     Langkawi Schedule \n ";
+	cout << "~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ " << endl;
+	cout << "Time \t || Ferry ID \t || Upper Deck   ||  Lower Deck" << endl;
+	for (int loop = 0; loop < SIZE; loop++)
+	{
+		cout << tFLangkawi[loop].timeDep << "\t" << " ||"
+			<< tFLangkawi[loop].fID << "\t" << "\t" << " ||"
+			<< tFLangkawi[loop].noSeatsUD << "\t" << "\t" << " ||"
+			<< tFLangkawi[loop].noSeatsLD << "\t" << endl;
+	}
+	cout << priceDisp;
+}
+
+char promptUser(int loc, char seat) //done
+{
+	bool flag = true;//flag = false to stop the do while loop 
+	/*loop when input wrongly
+	if input is correct, flag = false*/
+
+		do 
+		{
+			cout << "Enter a Ferry ID you would wish to book." << endl;
+			cin >> fIDselect;
+
+			while (cin.fail())
+			{
+				cout << "Invalid Entry \n Please enter numbers only" << endl;
+				cin.clear();
+				cin.ignore(numeric_limits<streamsize>::max(), '\n');
+				cin >> fIDselect;
+			} //only numbers can be entered
+
+			if (loc == 1 && fIDselect < 8)
+				cout << " Time " << tFPenang[fIDselect].timeDep << endl;
+			else
+				if ( loc == 2 && fIDselect < 8)
+				cout << " Time " << tFLangkawi[fIDselect].timeDep << endl;
+
+			if (fIDselect > 7)
+				cout << " Invalid. " << endl;
+
+
+		} while (fIDselect > 7);
+
+	
+
+	do
+	{
+
+		cout << " Would you like to purchase Upper Deck or Lower Deck? \n Enter 'u' for upper deck or 'l' for lower deck. " << endl;
+		cin >> seatoption;
+
+		if (tolower (seatoption) == 'u' || tolower (seatoption) == 'l')
+		{
+			flag = false;
+		}
+		else
+		{
+			cout << " Error, please enter 'u' or 'l' only. " << endl;
+			cin.clear();
+			cin.ignore(numeric_limits<streamsize>::max(), '\n');
+		}
+	} while (flag == true); // loop when flag == true//
+
+	return seatoption;
+}
+
+int numtixbreakdown() //done
+{
+	do
+	{
+		cout << "\n How many adults (age 13 and above) ? ";
+		cin >> n.numAdults;
+		{
+			while (cin.fail())
+			{
+				cout << "Invalid Entry \n Please enter numbers only" << endl;
+				cin.clear();
+				cin.ignore(numeric_limits<streamsize>::max(), '\n');
+				cin >> n.numAdults;
+			} //only numbers can be entered
+			// https://stackoverflow.com/questions/19521320/why-do-i-get-an-infinite-loop-if-i-enter-a-letter-rather-than-a-number
+
+		}
+
+		cout << " How many children (age 3 to 12) ? ";
+		cin >> n.numChildren;
+		{
+			while (cin.fail())
+			{
+				cout << "Invalid Entry \n Please enter numbers only" << endl;
+				cin.clear();
+				cin.ignore(numeric_limits<streamsize>::max(), '\n');
+				cin >> n.numChildren;
+			} //only numbers can be entered
+
+		}
+
+		cout << " How many infants (age 2 and below) ? ";
+		cin >> n.numInfants;
+		{
+			while (cin.fail())
+			{
+				cout << "Invalid Entry \n Please enter numbers only" << endl;
+				cin.clear();
+				cin.ignore(numeric_limits<streamsize>::max(), '\n');
+				cin >> n.numInfants;
+			} //only numbers can be entered
+
+		}
+
+		cout << " How many Senior Citizens (above age 65) ? ";
+		cin >> n.numSeniors;
+		{
+			while (cin.fail())
+			{
+				cout << "Invalid Entry \n Please enter numbers only" << endl;
+				cin.clear();
+				cin.ignore(numeric_limits<streamsize>::max(), '\n');
+				cin >> n.numSeniors;
+			} //only numbers can be entered
+
+		}
+
+		totalnum = n.numAdults + n.numChildren + n.numInfants + n.numSeniors;
+		cout << " \n Total number of passengers : " << totalnum << endl;
+
+		{
+			if (n.numAdults == 0 && n.numChildren > 0 && n.numInfants > 0)
+				cout << " Children and infants must come with a guardian. " << endl;
+		}
+
+	} while (n.numAdults == 0 && n.numChildren > 0 && n.numInfants > 0);
+
+	return totalnum;
+}
+
+void seatsUD(int loc, int fid)
+{
+	bool flag = true;
+	/* loc 1 : Penang > Langkawi
+	   loc 2 : Langkawi > Penang
+	   fID : 8 ferries
+	   udeck : 5 rows , 2 columns */
+
+	numtixbreakdown();
+
+	cout << " Number of seats you are booking : " << totalnum << endl;
+
+	do
+	{
+		if (totalnum > MAX_UD)
+		{
+			cout << " Upper deck only have 10 seats, please choose lower deck or other ferry. " << endl;
+			break;
+		}
+		else
+			if (totalnum > tFPenang[fIDselect].noSeatsUD || totalnum > tFLangkawi[fIDselect].noSeatsUD)
+			{
+				if (loc == 1)
+				{
+					cout << " Ferry " << (fIDselect) << " only have " << tFPenang[fIDselect].noSeatsUD << " seats left, please book again. " << endl;
+					break;
+				}
+				else
+				{
+					cout << " Ferry " << (fIDselect) << " only have " << tFLangkawi[fIDselect].noSeatsUD << " seats left, please book again. " << endl;
+					break;
+				}
+
+			}
+
+		while (totalnum > 0)
+		{
+
+			//display array//
+			cout << " Please choose a seat. \n" << endl;
+			cout << "           1    2 " << endl;
+			cout << " -------------------" << endl;
+
+			for (int row = 0; row < 5; row++)
+			{
+				cout << urownum[row];
+
+				for (int col = 0; col < 2; col++)
+				{
+					cout << seatingchartUD[loc - 1][fid][row][col] << "    ";
+				}
+				cout << endl;
+			}
+
+			do
+			{
+				cout << " Please enter the row number : ";
+				cin >> row;
+
+				cout << " Please enter the column number : ";
+				cin >> column;
+
+				if (row == 0 || row > 5 || column > 2)
+					cout << " Invalid " << endl;
+
+			} while (row == 0 || row > 5 || column > 2);
+
+
+			if (seatingchartUD[loc - 1][fid][row - 1][column - 1] == 0)
+			{
+				seatingchartUD[loc - 1][fid][row - 1][column - 1] = 1;
+				udpassengers[loc - 1][fid]++;
+				totalnum--;
+
+				if (loc == 1)
+					tFPenang[fIDselect].noSeatsUD--;
+				else
+					if (loc == 2)
+						tFLangkawi[fIDselect].noSeatsUD--;
+
+				cout << " The seat you selected is available! \n" << endl;
+
+					udticket(loc, fIDselect);
+					cout << " \n \n ";
+
+				cout << "           1    2 " << endl;
+				cout << " -------------------" << endl;
+				for (int i = 0; i < 5; i++)
+				{
+					cout << urownum[i];
+
+					for (int j = 0; j < 2; j++)
+					{
+						cout << seatingchartUD[loc - 1][fid][i][j] << "    ";
+					}
+					cout << endl;
+				}
+
+
+			}
+					else
+						if (seatingchartUD[loc - 1][fid][row - 1][column - 1] == 1)
+						{
+							cout << " We're sorry, the seat has been sold. Please select a different seating. " << endl;
+
+							cout << "           1    2" << endl;
+							cout << " -------------------" << endl;
+
+
+							for (int i = 0; i < 5; i++)
+							{
+								cout << urownum[i];
+
+								for (int j = 0; j < 2; j++)
+								{
+									cout << seatingchartUD[loc - 1][fid][i][j] << "    ";
+								}
+								cout << endl;
+							}
+
+						}
+				flag = false;
+		}
+	} while (flag == true);
+}
+
+void seatsLD(int loc, int fid)
+{
+	bool flag = true;
+
+	numtixbreakdown();
+
+	cout << " Number of seats you are booking : " << totalnum << endl;
+
+	do
+	{
+
+		if (totalnum > tFPenang[fIDselect].noSeatsLD || totalnum > tFLangkawi[fIDselect].noSeatsLD)
+		{
+			if (loc== 1)
+			{
+				cout << " Ferry " << (fIDselect) << " only have " << tFPenang[fIDselect].noSeatsLD << " seats left, please book again. " << endl;
+				break;
+			}
+			else
+			{
+				cout << " Ferry " << (fIDselect) << " only have " << tFLangkawi[fIDselect].noSeatsLD << " seats left, please book again. " << endl;
+				break;
+			}
+
+		}
+		//main loop//
+		while (totalnum > 0)
+		{
+			int row, column;
+
+			cout << " Please choose a seat. \n" << endl;
+			cout << "           1    2    3    4    5" << endl;
+			cout << " -----------------------------------" << endl;
+
+
+			for (int row = 0; row < 6; row++)
+			{
+				cout << lrownum[row];
+
+				for (int col = 0; col < 5; col++)
+				{
+					cout << seatingchartLD[loc - 1][fid][row][col] << "    ";
+				}
+				cout << endl;
+			}
+
+			do
+			{
+				cout << " Please enter the row number : ";
+				cin >> row;
+
+				cout << " Please enter the column number : ";
+				cin >> column;
+
+				if (row == 0 || row > 6 || column > 5)
+					cout << " Invalid " << endl;
+
+			} while (row == 0 || row > 6 || column > 5);
+
+
+			if (seatingchartLD[loc - 1][fid][row - 1][column - 1] == 0)
+			{
+				seatingchartLD[loc - 1][fid][row - 1][column - 1] = 1;
+				ldpassengers[loc - 1][fid]++;
+				totalnum--;
+
+				if (loc == 1)
+				{
+					tFPenang[fIDselect].noSeatsLD--;	
+
+				}
+
+				else
+					if (loc == 2)
+				{
+					tFLangkawi[fIDselect].noSeatsLD--;
+				}
+
+
+				cout << " The seat you selected is available! \n" << endl;
+
+					 ldticket(loc, fIDselect);
+					 cout << " \n \n ";
+
+				{
+					cout << "           1    2    3    4    5" << endl;
+					cout << " -----------------------------------" << endl;
+
+
+					for (int i = 0; i < 6; i++)
+					{
+						cout << lrownum[i];
+
+						for (int j = 0; j < 5; j++)
+						{
+							cout << seatingchartLD[loc - 1][fid][i][j] << "    ";
+						}
+						cout << endl;
+					}
+				}
+
+			}
+			else
+			{
+				if (seatingchartLD[loc - 1][fid][row - 1][column - 1] == 1)
+				{
+					cout << " We're sorry, the seat has been sold. Please select a different seating. " << endl;
+					{
+						cout << "           1    2    3    4    5" << endl;
+						cout << " -----------------------------------" << endl;
+
+
+						for (int i = 0; i < 6; i++)
+						{
+							cout << lrownum[i];
+
+							for (int j = 0; j < 5; j++)
+							{
+								cout << seatingchartLD[loc - 1][fid][i][j] << "    ";
+							}
+							cout << endl;
+						}
+					}
+				}
+
+			}
+			flag = false;
+		}
+
+
+	} while (flag == true);
+}
+
+void pferries(int loc)
+{
+	if (tolower(seatoption) == 'u')
+		seatsUD(loc, fIDselect);
+	else
+			seatsLD(loc, fIDselect);
+
+
+}
+
+void lferries(int loc)
+{
+			 if (tolower(seatoption) == 'u')
+				seatsUD(loc, fIDselect);
+			else
+				seatsLD(loc, fIDselect);
+}
+
+int buytix (int loc, char seat)
+{
+	bool flag = true;
+
+	do
+	{
+		cout << " Do you wish to proceed into payment? \n Press 'y' to continue, 'n' to end. \n ";
+		cin >> book;
+		
+			if (tolower(book) == 'y' || tolower(book) == 'n')
+			{
+				if (tolower(book == 'y'))
+				{
+					totalprice = 0;
+
+					if (seatoption == 'u')
+					{
+						adults = n.numAdults * 80;
+						children = n.numChildren * 60;
+						infants = n.numInfants * 35;
+						seniors = n.numSeniors * 65;
+					}
+					else
+					{
+						adults = n.numAdults * 75;
+						children = n.numChildren * 55;
+						infants = n.numInfants * 30;
+						seniors = n.numSeniors * 60;
+					}
+
+					totalprice = adults + children + infants + seniors;
+
+					cout << " \n Total price for adults : RM " << adults << endl;
+					cout << " Total price for children : RM " << children << endl;
+					cout << " Total price for infants : RM " << infants << endl;
+					cout << " Total price for seniors : RM " << seniors << endl;
+					cout << "\n Grand total : RM " << totalprice << "\n \n";
+
+						if (loc == 1)
+							penangSales[fIDselect] += totalprice;
+						else
+							langkawiSales[fIDselect] += totalprice;
+					
+						
+					return totalprice;
+				}
+				else				
+					break;
+				flag = false;
+			}
+			else
+			{
+				cout << " Error, please enter 'y' or 'n' only. " << endl;
+				cin.clear();
+				cin.ignore(numeric_limits<streamsize>::max(), '\n');
+			}
+		
+
+	} while (flag == true); // loop when flag == true//
+
+return book;
+}
+
+void udticket(int loc, int fid)
+{
+	if (loc == 1)
+	{
+		cout << " ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~" << endl;
+		cout << " \t F E R R Y  T I C K E T " << endl;
+		cout << " ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~" << endl;
+		cout << " \t    Penang > Langkawi " << endl;
+		cout << "\n Ferry ID : " << fIDselect << endl;
+		cout << " Time : " << tFPenang->timeDep << endl;
+		cout << " Deck : Upper Deck " << endl;
+		cout << " Seat number : Row " << row << " Column " << column << endl;
+		cout << " Total : RM   " << totalprice << endl;
+		cout << " Duration : Approx. 2 Hours " << endl;
+		cout << " One(1) Way Ticket " << endl;
+		cout << " ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~" << endl;
+	}
+
+	else
+		if (loc == 2)
+		{
+			cout << " ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~" << endl;
+			cout << " \t F E R R Y  T I C K E T " << endl;
+			cout << " ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~" << endl;
+			cout << " \t   Langkawi > Penang " << endl;
+			cout << "\n Ferry ID : " << fIDselect << endl;
+			cout << " Time : " << tFLangkawi->timeDep << endl;
+			cout << " Deck : Upper Deck " << endl;
+			cout << " Seat number : Row " << row << " Column " << column << endl;
+			cout << " Total : RM   " << totalprice << endl;
+			cout << " Duration : Approx. 2 Hours " << endl;
+			cout << " One(1) Way Ticket " << endl;
+			cout << " ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~" << endl;
+
+		}
+		
+}
+
+void ldticket(int loc, int fid)
+{
+
+	if (loc == 1)
+	{
+		cout << " ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~" << endl;
+		cout << " \t F E R R Y  T I C K E T " << endl;
+		cout << " ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~" << endl;
+		cout << " \t    Penang > Langkawi " << endl;
+		cout << "\n Ferry ID : " << fIDselect << endl;
+		cout << " Time : " << tFPenang->timeDep << endl;
+		cout << " Deck : Lower Deck " << endl;
+		cout << " Seat number : Row " << row << " Column " << column << endl;
+		cout << " Total : RM   " << totalprice << endl;
+		cout << " Duration : Approx. 2 Hours " << endl;
+		cout << " One(1) Way Ticket " << endl;
+		cout << " ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~" << endl;
+
+	}
+	else
+		if (loc == 2)
+		{
+			cout << " ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~" << endl;
+			cout << " \t F E R R Y  T I C K E T " << endl;
+			cout << " ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~" << endl;
+			cout << " \t   Langkawi > Penang " << endl;
+			cout << "\n Ferry ID : " << fIDselect << endl;
+			cout << " Time : " << tFLangkawi->timeDep << endl;
+			cout << " Deck : Lower Deck " << endl;
+			cout << " Seat number : Row " << row << " Column " << column << endl;
+			cout << " Total : RM   " << totalprice << endl;
+			cout << " Duration : Approx. 2 Hours " << endl;
+			cout << " One(1) Way Ticket " << endl;
+			cout << " ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~" << endl;
+
+		}
+}
+
+void displayReport(int loc, int fid)
+{
+		cout << " 1 for Report from Penang to Langkawi \n 2 for Report from Langkawi to Penang \n ";
+		cin >> loc;
+		if (loc == 1)
+		{
+			cout << " ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ " << endl;
+			cout << "					Daily Report			 " << endl;
+			cout << " ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ " << endl;
+
+			cout << " Ferry ID \t Upper Deck \t Lower Deck \t Total passengers \t Sales " << endl;
+			cout << " --------------------------------------------------------------------------------" << endl;
+			for (int i = 0; i < FERRYID; i++)
+			{
+				udeckPassengers = udpassengers[loc - 1][i];
+				ldeckPassengers = ldpassengers[loc - 1][i];
+				cout << "   " << tFPenang[i].fID << "\t \t    " << udeckPassengers  << " \t  \t    " << ldeckPassengers << "\t \t      " << udeckPassengers + ldeckPassengers
+					<< " \t \t   " << penangSales[i] << endl;
+
+			}
+		}
+		else
+		{
+			cout << " ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ " << endl;
+			cout << "					Daily Report			 " << endl;
+			cout << " ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ " << endl;
+
+			cout << " Ferry ID \t Upper Deck \t Lower Deck \t Total passengers \t Sales " << endl;
+			cout << " --------------------------------------------------------------------------------" << endl;
+			for (int i = 0; i < FERRYID; i++)
+			{
+				udeckPassengers = udpassengers[loc - 1][i];
+				ldeckPassengers = ldpassengers[loc - 1][i];
+
+				cout << "   " << tFLangkawi[i].fID << "\t \t    " << udeckPassengers << " \t  \t    " << ldeckPassengers << "\t \t      " << udeckPassengers + ldeckPassengers
+					<< " \t \t   " << langkawiSales[i] << endl;
+
+			}
+		}
+}
+
+int main()
+{
+	int option;
+	do
+	{
+		cout << " ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ " << endl;
+		cout << "         M E N U          " << endl;
+		cout << " ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ " << endl;
+		cout << "1 - Penang to Langkawi " << endl;
+		cout << "2 - Langkawi to Penang " << endl;
+		cout << "3 - View Report" << endl;
+		cout << "0 - Exit " << endl;
+		cin >> option;
+
+		switch (option)
+		{
+		case 1: pschedule();
+			promptUser(option, seatoption);
+			pferries(option);
+			buytix(option, seatoption);
+			break;
+		case 2: lschedule();
+			promptUser(option, seatoption);
+			lferries(option);
+			buytix(option, seatoption);
+			break;
+		case 3:
+			displayReport(option, fIDselect);
+			break;
+		case 0: cout << " Exiting program " << endl;
+			break;
+		default: cout << " Invalid input " << endl;
+		}
+
+	} while (option != 0);
+
+}
+
